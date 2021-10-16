@@ -1,0 +1,45 @@
+getgenv().TeamCheck = true -- true/false
+getgenv().SilentAim = true -- true/false
+
+local function GetClosestPlayer()
+local Player = nil
+local Distance = math.huge;
+
+for i,v in next, game.Players.GetPlayers(game.Players) do
+if v ~= game.Players.LocalPlayer and ((TeamCheck and v.Team ~= game.Players.LocalPlayer.Team) or (not TeamCheck and true)) then
+if v.Character.FindFirstChild(v.Character, 'Head') and v.Character.FindFirstChild(v.Character, 'Humanoid') and v.Character.Humanoid.Health ~= 0 then
+local Pos = game.Workspace.CurrentCamera.WorldToViewportPoint(game.Workspace.CurrentCamera, v.Character.Head.Position)
+local Mouse = game.Players.LocalPlayer.GetMouse(game.Players.LocalPlayer)
+local Magnitude = (Vector2.new(Mouse.X, Mouse.Y)-Vector2.new(Pos.X, Pos.Y)).magnitude
+
+if Magnitude < Distance then
+Player = v
+Distance = Magnitude
+end
+end
+end
+end
+
+return Player or 'gay'
+end
+
+local mt = getrawmetatable(game)
+setreadonly(mt, false)
+local nc = mt.__namecall
+
+mt.__namecall = newcclosure(function(self, ...)
+local Method = getnamecallmethod()
+local Args = {...}
+
+if Method == 'FireServer' and self.Name == 'HitPart' and SilentAim then
+local Player = GetClosestPlayer()
+
+if Player ~= 'gay' then
+Args[1] = Player.Character.Head
+Args[2] = Player.Character.Head.Position
+return nc(self, unpack(Args))
+end
+end
+
+return nc(self, ...)
+end)
